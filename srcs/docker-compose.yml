@@ -1,0 +1,119 @@
+version: '3.3'
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+volumes:
+  volume-wordpress:
+    name: volume-wordpress
+    driver: local
+    driver_opts:
+      type: none
+      o : bind
+      device: "/home/${USER}/data/wordpress"
+  volume-db:
+    name: volume-db
+    driver: local
+    driver_opts:
+      type: none
+      o : bind
+      device: "/home/${USER}/data/db"
+
+services:
+
+  mariadb:
+    build: 
+      dockerfile: Dockerfile
+      context: ./requirements/mariadb
+    image: mariadb
+    container_name: mariadb
+    hostname: mariadb
+    env_file:
+      - .env
+    volumes:
+      - volume-db:/var/lib/mysql
+    networks:
+      - inception
+    restart: on-failure
+
+  wordpress:
+    build:
+      dockerfile: Dockerfile
+      context: ./requirements/wordpress
+    image: wordpress
+    container_name: wordpress
+    hostname: wordpress
+    env_file:
+      - .env
+    volumes:
+      - volume-wordpress:/var/www/html
+    networks:
+      - inception
+    restart: on-failure
+    depends_on:
+      - "mariadb"
+      - "redis"
+
+  nginx:
+    build: 
+      dockerfile: Dockerfile
+      context: ./requirements/nginx
+    ports:
+      - 443:443
+    image: nginx
+    container_name: nginx
+    hostname: nginx
+    volumes:
+      - volume-wordpress:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      - "wordpress"
+    restart: always
+
+  ftp:
+    build:
+      dockerfile: Dockerfile
+      context: ./requirements/bonus/ftp
+    image: ftp
+    container_name: ftp
+    hostname: ftp
+    env_file:
+      - .env
+    volumes:
+      - volume-wordpress:/var/ftp
+    networks:
+      - inception
+    ports:
+      - 20:20
+      - 21:21
+      - 11000-11100:11000-11100
+    restart: always
+
+  adminer:
+    build:
+      dockerfile: Dockerfile
+      context: ./requirements/bonus/adminer
+    image: adminer
+    container_name: adminer
+    hostname: adminer
+    networks:
+      - inception
+    ports:
+      - 5051:5051
+    restart: always
+
+  redis:
+    build:
+      dockerfile: Dockerfile
+      context: ./requirements/bonus/redis
+    image: redis
+    container_name: redis
+    hostname: redis
+    networks:
+      - inception
+    ports:
+      - 6379:6379
+    restart: always
