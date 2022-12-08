@@ -1,20 +1,20 @@
 version: '3.3'
 
 networks:
-  inception:
-    name: inception
+  inception-local:
+    name: inception-local
     driver: bridge
 
 volumes:
-  volume-wordpress:
-    name: volume-wordpress
+  wordpress:
+    name: wordpress
     driver: local
     driver_opts:
       type: none
       o : bind
       device: "/home/${USER}/data/wordpress"
-  volume-db:
-    name: volume-db
+  db:
+    name: db
     driver: local
     driver_opts:
       type: none
@@ -33,9 +33,9 @@ services:
     env_file:
       - .env
     volumes:
-      - volume-db:/var/lib/mysql
+      - db:/var/lib/mysql
     networks:
-      - inception
+      - inception-local
     restart: on-failure
 
   wordpress:
@@ -48,9 +48,9 @@ services:
     env_file:
       - .env
     volumes:
-      - volume-wordpress:/var/www/html
+      - wordpress:/var/www/html
     networks:
-      - inception
+      - inception-local
     restart: on-failure
     depends_on:
       - "mariadb"
@@ -66,9 +66,9 @@ services:
     container_name: nginx
     hostname: nginx
     volumes:
-      - volume-wordpress:/var/www/html
+      - wordpress:/var/www/html
     networks:
-      - inception
+      - inception-local
     depends_on:
       - "wordpress"
     restart: always
@@ -83,9 +83,9 @@ services:
     env_file:
       - .env
     volumes:
-      - volume-wordpress:/var/ftp
+      - wordpress:/var/ftp
     networks:
-      - inception
+      - inception-local
     ports:
       - 20:20
       - 21:21
@@ -100,7 +100,7 @@ services:
     container_name: adminer
     hostname: adminer
     networks:
-      - inception
+      - inception-local
     ports:
       - 5051:5051
     restart: always
@@ -113,7 +113,7 @@ services:
     container_name: redis
     hostname: redis
     networks:
-      - inception
+      - inception-local
     ports:
       - 6379:6379
     restart: always

@@ -1,6 +1,6 @@
 FROM alpine:3.16
 
-RUN apk update && apk add nginx openssl php8-fpm php8-mysqli php8-opcache php8-gd php8-mysqli php8-zlib php8-curl php8-mbstring php8-gettext \
+RUN apk update && apk add nginx openssl php8-fpm php8-mysqli php8-opcache php8-gd php8-zlib php8-curl php8-mbstring php8-gettext \
     curl bzip2 gzip php8-session php8-bz2 php8-zip \
     && rm -rf /var/cache/apk*
     # php8
